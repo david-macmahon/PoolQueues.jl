@@ -29,11 +29,12 @@ function process_data_args(io::IO, pq::PoolQueue)
     end
 end
 
-@testset "PoolQueues.jl" for consumer_func in (process_data_closure, process_data_args)
-    # Make data in and data out IOBuffers
-    din = IOBuffer(UInt8.(0x00:0xff))
-    dout = IOBuffer()
-    expected = """
+@testset "PoolQueues.jl" begin
+    @testset for consumer_func in (process_data_closure, process_data_args)
+        # Make data in and data out IOBuffers
+        din = IOBuffer(UInt8.(0x00:0xff))
+        dout = IOBuffer()
+        expected = """
 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f
 20 21 22 23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f
@@ -52,29 +53,43 @@ e0 e1 e2 e3 e4 e5 e6 e7 e8 e9 ea eb ec ed ee ef
 f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff
 """
 
-    pq = PoolQueue(MyItem, 2)
-    consumer = @async consumer_func(dout, pq)
+        pq = PoolQueue(MyItem, 2)
+        consumer = @async consumer_func(dout, pq)
 
-    eof = false
-    while !eof
-        produced_item = produce!(pq, din) do item, din
-            try
-                read!(din, item.data)
-            catch
-                return MyItem(true, item.data)
+        eof = false
+        while !eof
+            produced_item = produce!(pq, din) do item, din
+                try
+                    read!(din, item.data)
+                catch
+                    return MyItem(true, item.data)
+                end
+                item
             end
-            item
+            eof = produced_item.eof
         end
-        eof = produced_item.eof
+
+        # Wait for consumer to finish
+        wait(consumer)
+
+        got = String(take!(dout))
+        @test got == expected
+
+        @test istaskdone(consumer)
+        @test !istaskfailed(consumer)
+        @test istaskstarted(consumer)
     end
 
-    # Wait for consumer to finish
-    wait(consumer)
-
-    got = String(take!(dout))
-    @test got == expected
-
-    @test istaskdone(consumer)
-    @test !istaskfailed(consumer)
-    @test istaskstarted(consumer)
+    @testset begin
+        pq = PoolQueue(Ref, 2, 2, 0)
+        @test isready(pq.pool)
+        @test !isready(pq.queue)
+        # Test that returning nothing will recycle item
+        @test produce!(item->nothing, pq) === nothing
+        @test isready(pq.pool)
+        @test !isready(pq.queue)
+        r1 = acquire!(pq)
+        r2 = acquire!(pq)
+        @test !isready(pq.pool)
+    end
 end

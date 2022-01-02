@@ -98,7 +98,7 @@ Construct a PoolQueue using `Channel{T}` channels.  The pool channel will hold
 up to `np` items of type `T` and the queue channel will hold up to `np` items of
 type `T`.  The function `f`, which should return a single item of type `T`, will
 be called `np` times as `f(fargs...; fkwargs...)` to prepopulate the PoolQueue's
-pool.
+pool.  If `fargs` is used, `nq` must be passed explicitly.
 """
 function PoolQueue{T}(f::Function, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {T}
     pq = PoolQueue{T}(np, nq)
@@ -114,7 +114,8 @@ end
 Construct a PoolQueue using `Channel{T}` channels.  The pool channel will hold
 up to `np` items of type `T` and the queue channel will hold up to `np` items of
 type `T`.  The constructor of `T` will be called `np` times as `T(fargs...;
-fkwargs...)` to prepopulate the PoolQueue's pool.
+fkwargs...)` to prepopulate the PoolQueue's pool.  If `fargs` is used, `nq` must
+be passed explicitly.
 """
 function PoolQueue(::Type{T}, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {T}
     PoolQueue{T}((a...; k...)->T(a...; k...), np, nq, fargs...; fkwargs...)
@@ -150,11 +151,16 @@ end
     produce!(f::Function, pq::PoolQueue{C}, fargs...)::T where {T, C<:AbstractChannel{T}}
 
 Produce an item by acquiring an available item from `pq.pool`, call `f(item,
-fargs...)`, and `produce!` the value returned by `f`.  The produced item is
-returned by this call.
+fargs...)`, and `produce!` the value returned by `f` unless it is `nothing`.  If
+`f` returns `nothing`, the item is recycled without being produced.  The value
+returned by `f`, which is of type `T` or `nothing`, is returned from this
+function.  returned by this call.
 """
-function produce!(f::Function, pq::PoolQueue{C}, fargs...)::T where {T, C<:AbstractChannel{T}}
-    take!(pq.pool) |> item->f(item, fargs...) |> item->put!(pq.queue, item)
+function produce!(f::Function, pq::PoolQueue{C}, fargs...)::Union{T, Nothing} where {T, C<:AbstractChannel{T}}
+    poolitem = take!(pq.pool)
+    produceitem = f(poolitem, fargs...)
+    produceitem === nothing ? put!(pq.pool, poolitem) : put!(pq.queue, produceitem)
+    produceitem
 end
 
 """
