@@ -60,7 +60,7 @@ while true
     # (application specific code goes here)
 
     # Recycle the item back to the PoolQueue's pool
-    produce!(poolqueue, item)
+    recycle!(poolqueue, item)
 end
 ```
 
