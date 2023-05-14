@@ -16,7 +16,7 @@ A PoolQueue facilitates sharing a pool of items between a producer Task and a
 consumer Task.  The four main operations on a PoolQueue are: `acquire!`,
 `produce!`, `consume!`, and `recycle!`.  The first two are called by producer
 Tasks; the latter two by consumer Tasks.  Typically the PoolQueue's pool is
-prepopluated with preallocated items (such as Arrays or user defined structs).
+pre-populated with preallocated items (such as Arrays or user defined structs).
 PoolQueue constructor methods exist to facilitate this.  By recycling these
 items in the PoolQueue, memory allocations (and garbage collection) can be
 minimized.
@@ -56,12 +56,16 @@ send that to the consumer task for processing, and then read the next portion of
 the data file.  The producer Task's reading of the next portion of data happens
 in parallel with the consumer Task's processing the previous data.  Instead of:
 
-    main task: read0 process0 read1 process1 read2 process2 ... [time -->]
+```text
+main task: read0 process0 read1 process1 read2 process2 ... [time -->]
+```
 
 using a PoolQueue with two (or more) items allows:
 
-    producer task: read0 read1    read2    ... [time -->]
-    consumer task:       process0 process1 ... [time -->]
+```text
+producer task: read1 read2    read3    ... [time -->]
+consumer task:       process1 process2 ... [time -->]
+```
 """
 struct PoolQueue{C}
     pool::C
@@ -97,8 +101,8 @@ end
 Construct a PoolQueue using `Channel{T}` channels.  The pool channel will hold
 up to `np` items of type `T` and the queue channel will hold up to `np` items of
 type `T`.  The function `f`, which should return a single item of type `T`, will
-be called `np` times as `f(fargs...; fkwargs...)` to prepopulate the PoolQueue's
-pool.  If `fargs` is used, `nq` must be passed explicitly.
+be called `np` times as `f(fargs...; fkwargs...)` to pre-populate the
+PoolQueue's pool.  If `fargs` is used, `nq` must be passed explicitly.
 """
 function PoolQueue{T}(f::Function, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {T}
     pq = PoolQueue{T}(np, nq)
@@ -114,7 +118,7 @@ end
 Construct a PoolQueue using `Channel{T}` channels.  The pool channel will hold
 up to `np` items of type `T` and the queue channel will hold up to `np` items of
 type `T`.  The constructor of `T` will be called `np` times as `T(fargs...;
-fkwargs...)` to prepopulate the PoolQueue's pool.  If `fargs` is used, `nq` must
+fkwargs...)` to pre-populate the PoolQueue's pool.  If `fargs` is used, `nq` must
 be passed explicitly.
 """
 function PoolQueue(::Type{T}, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {T}

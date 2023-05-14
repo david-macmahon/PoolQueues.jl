@@ -25,7 +25,7 @@ while true
     # Acquire an available item from the PoolQueue's pool
     item = acquire!(poolqueue)
 
-    # Preprare item for production
+    # Prepare item for production
     # (application specific code goes here)
 
     # Produce the item to the PoolQueue's queue
@@ -38,7 +38,7 @@ But this can be more conveniently expressed as:
 ```julia
 while true
     produce!(poolqueue) do item
-        # Preprare item for production
+        # Prepare item for production
         # (application specific code goes here)
 
         # Return item for production
@@ -78,16 +78,20 @@ while true
 end
 ```
 
-# Example use case
+## Example use case
 
 One usage scenario is for the producer task to read a portion of a data file,
 send that to the consumer task for processing, and then read the next portion of
 the data file.  The producer Task's reading of the next portion of data happens
 in parallel with the consumer Task's processing the previous data.  Instead of:
 
-    main task: read0 process0 read1 process1 read2 process2 ... [time -->]
+```text
+main task: read1 process1 read2 process2 read3 process3 ... [time -->]
+```
 
 using a PoolQueue with two (or more) items allows:
 
-    producer task: read0 read1    read2    ... [time -->]
-    consumer task:       process0 process1 ... [time -->]
+```text
+producer task: read1 read2    read3    ... [time -->]
+consumer task:       process1 process2 ... [time -->]
+```
