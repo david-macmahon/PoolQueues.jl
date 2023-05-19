@@ -118,8 +118,8 @@ end
 Construct a PoolQueue using `Channel{T}` channels.  The pool channel will hold
 up to `np` items of type `T` and the queue channel will hold up to `np` items of
 type `T`.  The constructor of `T` will be called `np` times as `T(fargs...;
-fkwargs...)` to pre-populate the PoolQueue's pool.  If `fargs` is used, `nq` must
-be passed explicitly.
+fkwargs...)` to pre-populate the PoolQueue's pool.  If `fargs` is used, `nq`
+must be passed explicitly.
 """
 function PoolQueue(::Type{T}, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {T}
     PoolQueue{T}((a...; k...)->T(a...; k...), np, nq, fargs...; fkwargs...)
@@ -205,7 +205,7 @@ will typically be called within a task:
     producer_task = @task produce_on_command(myproducerfunc, cmd, pq)
 
 If an exception is thrown while taking from `cmd`, an `@info` message is logged
-and the funtion will return.  If an exception is thrown within `produce`, a
+and the function will return.  If an exception is thrown within `produce`, a
 `@warn` message is logged at the function will return.  If `autoclose` is
 `true` (the default), then `cmd` and `pq` will be closed before returning.
 """
@@ -215,7 +215,7 @@ function produce_on_command(produce, cmd::AbstractChannel{T}, pq::PoolQueue{C};
     # Command loop
     while true
         command = try
-            # Take rawstem from cmd channel
+            # Take command from cmd channel
             take!(cmd)
         catch
             @info "got exception from command channel [done]"
