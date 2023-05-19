@@ -1,3 +1,4 @@
+# TODO Allow pool and queue to hold different types
 """
 PoolQueues facilitate sharing pools of items between producer Tasks and consumer
 Tasks.  See `PoolQueue` for more information.
@@ -161,9 +162,9 @@ returned by `f`, which is of type `T` or `nothing`, is returned from this
 function.  returned by this call.
 """
 function produce!(f::Function, pq::PoolQueue{C}, fargs...)::Union{T, Nothing} where {T, C<:AbstractChannel{T}}
-    poolitem = take!(pq.pool)
+    poolitem = acquire!(pq)
     produceitem = f(poolitem, fargs...)
-    produceitem === nothing ? put!(pq.pool, poolitem) : put!(pq.queue, produceitem)
+    produceitem === nothing ? recycle!(pq, poolitem) : produce!(pq, produceitem)
     produceitem
 end
 
@@ -183,7 +184,7 @@ Consume an item from `pq.queue`, call `f(item, fargs...)`, and `recycle!` the
 value returned by `f`.
 """
 function consume!(f::Function, pq::PoolQueue{C}, fargs...)::T where {T, C<:AbstractChannel{T}}
-    take!(pq.queue) |> item->f(item, fargs...) |> item->put!(pq.pool, item)
+    consume!(pq) |> item->f(item, fargs...) |> item->recycle!(pq, item)
 end
 
 """
