@@ -196,47 +196,4 @@ function recycle!(pq::PoolQueue{C}, item::T)::T where {T, C<:AbstractChannel{T}}
     put!(pq.pool, item)
 end
 
-"""
-    produce_on_command(produce, cmd::AbstractChannel{T}, pq::PoolQueue{C};
-                       autoclose=true)
-
-For each `command` taken from `cmd`, call `produce(command, pq)`.  This function
-will typically be called within a task:
-
-    producer_task = @task produce_on_command(myproducerfunc, cmd, pq)
-
-If an exception is thrown while taking from `cmd`, an `@info` message is logged
-and the function will return.  If an exception is thrown within `produce`, a
-`@warn` message is logged at the function will return.  If `autoclose` is
-`true` (the default), then `cmd` and `pq` will be closed before returning.
-"""
-function produce_on_command(produce, cmd::AbstractChannel{T}, pq::PoolQueue{C};
-                            autoclose=true
-                           ) where {T<:AbstractString, C<:AbstractChannel}
-    # Command loop
-    while true
-        command = try
-            # Take command from cmd channel
-            take!(cmd)
-        catch
-            @info "got exception from command channel [done]"
-            break
-        end
-
-        @debug "calling $produce with command $command"
-        try
-            produce(command, pq)
-        catch
-            @warn "got exception from produce function [done]"
-            break
-        end
-    end
-
-    if autoclose
-        close(pq.queue)
-        close(cmd)
-    end
-    nothing
-end
-
 end # module PoolQueues
