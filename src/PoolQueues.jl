@@ -1,4 +1,3 @@
-# TODO Allow pool and queue to hold different types
 """
 PoolQueues facilitate sharing pools of items between producer Tasks and consumer
 Tasks.  See `PoolQueue` for more information.
@@ -68,45 +67,50 @@ producer task: read1 read2    read3    ... [time -->]
 consumer task:       process1 process2 ... [time -->]
 ```
 """
-struct PoolQueue{C}
-    pool::C
-    queue::C
-    PoolQueue{C}(p::C, q::C) where {T, C<:AbstractChannel{T}} = new(p, q)
+struct PoolQueue{Cp,Cq}
+    pool::Cp
+    queue::Cq
+    PoolQueue{Cp,Cq}(p::Cp, q::Cq) where {Tp, Cp<:AbstractChannel{Tp},
+                                          Tq, Cq<:AbstractChannel{Tq}} = new(p, q)
 end
 
 """
-    PoolQueue(p::C, q::C) where {T, C<:AbstractChannel{T}}
+    PoolQueue(p::Cp, q::Cq) where {Cp<:AbstractChannel,
+                                   Cq<:AbstractChannel}
 
 Construct a PoolQueue from two `AbstractChannel{T}` instances.
 """
-function PoolQueue(p::C, q::C) where {T, C<:AbstractChannel{T}}
-    PoolQueue{C}(p, q)
+function PoolQueue(p::Cp, q::Cq) where {Cp<:AbstractChannel,
+                                        Cq<:AbstractChannel}
+    PoolQueue{Cp,Cq}(p, q)
 end
 
 """
-    PoolQueue{T}(np::Integer, nq::Integer=np) where {T}
+    PoolQueue{Tp, Tq}(np::Integer, nq::Integer=np)
 
-Construct a PoolQueue using `Channel{T}` channels.  The pool channel will hold
-up to `np` items of type `T` and the queue channel will hold up to `np` items of
-type `T`.
+Construct a PoolQueue using a `Channel{Tp}` channel for the pool and a
+`Channel{Tq}` channel for the queue.  The pool channel will hold up to `np`
+items of type `Tp` and the queue channel will hold up to `np` items of
+type `Tq`.
 """
-function PoolQueue{T}(np::Integer, nq::Integer=np) where {T}
+function PoolQueue{Tp,Tq}(np::Integer, nq::Integer=np) where {Tp,Tq}
     np > 0 || throw(ArgumentError("pool size must be positive"))
     nq > 0 || throw(ArgumentError("queue size must be positive"))
-    PoolQueue{Channel{T}}(Channel{T}(np), Channel{T}(nq))
+    PoolQueue(Channel{Tp}(np), Channel{Tq}(nq))
 end
 
 """
-    PoolQueue{T}(f::Function, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {T}
+    PoolQueue{Tp,Tq}(f::Function, np::Integer, nq::Integer=np, fargs...; fkwargs...)
 
-Construct a PoolQueue using `Channel{T}` channels.  The pool channel will hold
-up to `np` items of type `T` and the queue channel will hold up to `np` items of
-type `T`.  The function `f`, which should return a single item of type `T`, will
-be called `np` times as `f(fargs...; fkwargs...)` to pre-populate the
-PoolQueue's pool.  If `fargs` is used, `nq` must be passed explicitly.
+Construct a PoolQueue using a `Channel{Tp}` channel for the pool and a
+`Channel{Tq}` channel for the queue.  The pool channel will hold up to `np`
+items of type `Tp` and the queue channel will hold up to `nq` items of type
+`Tq`.  The function `f`, which should return a single item of type `Tp`, will be
+called `np` times as `f(fargs...; fkwargs...)` to pre-populate the PoolQueue's
+pool.  If `fargs` is used, `nq` must be passed explicitly.
 """
-function PoolQueue{T}(f::Function, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {T}
-    pq = PoolQueue{T}(np, nq)
+function PoolQueue{Tp,Tq}(f::Function, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {Tp,Tq}
+    pq = PoolQueue{Tp,Tq}(np, nq)
     for _ in 1:np
         recycle!(pq, f(fargs...; fkwargs...))
     end
@@ -114,16 +118,22 @@ function PoolQueue{T}(f::Function, np::Integer, nq::Integer=np, fargs...; fkwarg
 end
 
 """
-    PoolQueue(::Type{T}, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {T}
+    PoolQueue(::Type{Tp}, [::Type{Tq},] np::Integer, nq::Integer=np, Tpargs...; Tpkwargs...)
 
-Construct a PoolQueue using `Channel{T}` channels.  The pool channel will hold
-up to `np` items of type `T` and the queue channel will hold up to `np` items of
-type `T`.  The constructor of `T` will be called `np` times as `T(fargs...;
-fkwargs...)` to pre-populate the PoolQueue's pool.  If `fargs` is used, `nq`
-must be passed explicitly.
+Construct a PoolQueue using a `Channel{Tp}` channel for the pool and a
+`Channel{Tq}` channel for the queue.  The pool channel will hold up to `np`
+items of type `Tp` and the queue channel will hold up to `nq` items of type
+`Tq`.  The constructor of `Tp` will be called `np` times as `Tp(Tpargs...;
+Tpkwargs...)` to pre-populate the PoolQueue's pool.  If `Tpargs` is used, `nq`
+must be passed explicitly.  If `Tq` is omitted, it will be taken to be the same
+as `Tp`.
 """
-function PoolQueue(::Type{T}, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {T}
-    PoolQueue{T}((a...; k...)->T(a...; k...), np, nq, fargs...; fkwargs...)
+function PoolQueue(::Type{Tp}, ::Type{Tq}, np::Integer, nq::Integer=np, Tpargs...; Tpkwargs...) where {Tp,Tq}
+    PoolQueue{Tp,Tq}((a...; k...)->Tp(a...; k...), np, nq, Tpargs...; Tpkwargs...)
+end
+
+function PoolQueue(::Type{Tp}, np::Integer, nq::Integer=np, Tpargs...; Tpkwargs...) where {Tp}
+    PoolQueue{Tp,Tp}((a...; k...)->Tp(a...; k...), np, nq, Tpargs...; Tpkwargs...)
 end
 
 """
@@ -135,33 +145,39 @@ function Base.close(pq::PoolQueue)
 end
 
 """
-    acquire!(pq::PoolQueue{C})::T where {T, C<:AbstractChannel{T}}
+    acquire!(pq::PoolQueue{Cp,Cq})::Tp where {Tp, Cp<:AbstractChannel{Tp},
+                                                  Cq<:AbstractChannel}
 
 Acquire an available item from `pq.pool`.
 """
-function acquire!(pq::PoolQueue{C})::T where {T, C<:AbstractChannel{T}}
+function acquire!(pq::PoolQueue{Cp,Cq})::Tp where {Tp, Cp<:AbstractChannel{Tp},
+                                                       Cq<:AbstractChannel}
     take!(pq.pool)
 end
 
 """
-    produce!(pq::PoolQueue{C}, item::T)::T where {T, C<:AbstractChannel{T}}
+    produce!(pq::PoolQueue{Cp,Cq}, item::Tp)::Tp where {Tp, Cp<:AbstractChannel{Tp},
+                                                            Cq<:AbstractChannel}
 
 Produce `item` to `pq.queue`.
 """
-function produce!(pq::PoolQueue{C}, item::T)::T where {T, C<:AbstractChannel{T}}
+function produce!(pq::PoolQueue{Cp,Cq}, item::Tp)::Tp where {Tp, Cp<:AbstractChannel{Tp},
+                                                                 Cq<:AbstractChannel}
     put!(pq.queue, item)
 end
 
 """
-    produce!(f::Function, pq::PoolQueue{C}, fargs...)::T where {T, C<:AbstractChannel{T}}
+    produce!(f::Function, pq::PoolQueue{Cp,Cp}, fargs...)::Union{Tp,Nothing} where {Tp, Cp<:AbstractChannel{Tp},
+                                                                                        Cq<:AbstractChannel}
 
 Produce an item by acquiring an available item from `pq.pool`, call `f(item,
 fargs...)`, and `produce!` the value returned by `f` unless it is `nothing`.  If
 `f` returns `nothing`, the item is recycled without being produced.  The value
 returned by `f`, which is of type `T` or `nothing`, is returned from this
-function.  returned by this call.
+function.
 """
-function produce!(f::Function, pq::PoolQueue{C}, fargs...)::Union{T, Nothing} where {T, C<:AbstractChannel{T}}
+function produce!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Tp, Nothing} where {Tp, Cp<:AbstractChannel{Tp},
+                                                                                              Cq<:AbstractChannel}
     poolitem = acquire!(pq)
     produceitem = f(poolitem, fargs...)
     produceitem === nothing ? recycle!(pq, poolitem) : produce!(pq, produceitem)
@@ -169,30 +185,36 @@ function produce!(f::Function, pq::PoolQueue{C}, fargs...)::Union{T, Nothing} wh
 end
 
 """
-    consume!(pq::PoolQueue{C})::T where {T, C<:AbstractChannel{T}}
+    consume!(pq::PoolQueue{Cp,Cq})::Tq where {Tq, Cp<:AbstractChannel,
+                                                  Cq<:AbstractChannel{Tq}}
 
 Consume an item from `pq.queue`.
 """
-function consume!(pq::PoolQueue{C})::T where {T, C<:AbstractChannel{T}}
+function consume!(pq::PoolQueue{Cp,Cq})::Tq where {Tq, Cp<:AbstractChannel,
+                                                       Cq<:AbstractChannel{Tq}}
     take!(pq.queue)
 end
 
 """
-    consume!(f::Function, pq::PoolQueue{C}, fargs....)::T where {T, C<:AbstractChannel{T}}
+    consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Tq where {Tq, Cp<:AbstractChannel,
+                                                                         Cq<:AbstractChannel{Tq}}
 
 Consume an item from `pq.queue`, call `f(item, fargs...)`, and `recycle!` the
-value returned by `f`.
+value returned by `f`, which must be of type `Tq`.
 """
-function consume!(f::Function, pq::PoolQueue{C}, fargs...)::T where {T, C<:AbstractChannel{T}}
+function consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Tq where {Tq, Cp<:AbstractChannel,
+                                                                              Cq<:AbstractChannel{Tq}}
     consume!(pq) |> item->f(item, fargs...) |> item->recycle!(pq, item)
 end
 
 """
-    recycle!(pq::PoolQueue{C}, item::T)::T where {T, C<:AbstractChannel{T}}
+    recycle!(pq::PoolQueue{Cp,Cq}, item::Tq)::Tq where {Tq, Cp<:AbstractChannel,
+                                                            Cq<:AbstractChannel{T}}
 
 Recycle `item` back to `pq.pool`.
 """
-function recycle!(pq::PoolQueue{C}, item::T)::T where {T, C<:AbstractChannel{T}}
+function recycle!(pq::PoolQueue{Cp,Cq}, item::Tq)::Tq where {Tq, Cp<:AbstractChannel,
+                                                                 Cq<:AbstractChannel{Tq}}
     put!(pq.pool, item)
 end
 
