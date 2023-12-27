@@ -100,17 +100,30 @@ end
 
 """
     PoolQueue{Tp,Tq}(f::Function, np::Integer, nq::Integer=np, fargs...; fkwargs...)
+    PoolQueue(f::Function, np::Integer, nq::Integer=np, fargs...; fkwargs...)
 
 Construct a PoolQueue using a `Channel{Tp}` channel for the pool and a
 `Channel{Tq}` channel for the queue.  The pool channel will hold up to `np`
 items of type `Tp` and the queue channel will hold up to `nq` items of type
 `Tq`.  The function `f`, which should return a single item of type `Tp`, will be
 called `np` times as `f(fargs...; fkwargs...)` to pre-populate the PoolQueue's
-pool.  If `fargs` is used, `nq` must be passed explicitly.
+pool.  If `fargs` is used, `nq` must be passed explicitly.  The
+non-parameterized constructor uses the return type of `f` as `Tp` and `Tq`.
 """
 function PoolQueue{Tp,Tq}(f::Function, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {Tp,Tq}
     pq = PoolQueue{Tp,Tq}(np, nq)
     for _ in 1:np
+        recycle!(pq, f(fargs...; fkwargs...))
+    end
+    pq
+end
+
+function PoolQueue(f::Function, np::Integer, nq::Integer=np, fargs...; fkwargs...)
+    item = f(fargs...; fkwargs...)
+    T = typeof(item)
+    pq = PoolQueue{T,T}(np, nq)
+    recycle!(pq, item)
+    for _ in 2:np
         recycle!(pq, f(fargs...; fkwargs...))
     end
     pq
