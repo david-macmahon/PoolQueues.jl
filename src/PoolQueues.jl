@@ -9,7 +9,6 @@ export acquire!
 export produce!
 export consume!
 export recycle!
-export produce_on_command
 
 """
 A PoolQueue facilitates sharing a pool of items between a producer Task and a
