@@ -168,28 +168,28 @@ function acquire!(pq::PoolQueue{Cp,Cq})::Tp where {Tp, Cp<:AbstractChannel{Tp},
 end
 
 """
-    produce!(pq::PoolQueue{Cp,Cq}, item::Tp)::Tp where {Tp, Cp<:AbstractChannel{Tp},
-                                                            Cq<:AbstractChannel}
+    produce!(pq::PoolQueue{Cp,Cq}, item::Tq)::Tq where {Tq, Cp<:AbstractChannel,
+                                                            Cq<:AbstractChannel{Tq}}
 
 Produce `item` to `pq.queue`.
 """
-function produce!(pq::PoolQueue{Cp,Cq}, item::Tp)::Tp where {Tp, Cp<:AbstractChannel{Tp},
-                                                                 Cq<:AbstractChannel}
+function produce!(pq::PoolQueue{Cp,Cq}, item::Tq)::Tq where {Tq, Cp<:AbstractChannel,
+                                                                 Cq<:AbstractChannel{Tq}}
     put!(pq.queue, item)
 end
 
 """
-    produce!(f::Function, pq::PoolQueue{Cp,Cp}, fargs...)::Union{Tp,Nothing} where {Tp, Cp<:AbstractChannel{Tp},
-                                                                                        Cq<:AbstractChannel}
+    produce!(f::Function, pq::PoolQueue{Cp,Cp}, fargs...)::Union{Tq,Nothing} where {Tq, Cp<:AbstractChannel,
+                                                                                        Cq<:AbstractChannel{Tq}}
 
 Produce an item by acquiring an available item from `pq.pool`, call `f(item,
 fargs...)`, and `produce!` the value returned by `f` unless it is `nothing`.  If
 `f` returns `nothing`, the item is recycled without being produced.  The value
-returned by `f`, which is of type `T` or `nothing`, is returned from this
+returned by `f`, which is of type `Tq` or `nothing`, is returned from this
 function.
 """
-function produce!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Tp, Nothing} where {Tp, Cp<:AbstractChannel{Tp},
-                                                                                              Cq<:AbstractChannel}
+function produce!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Tq, Nothing} where {Tq, Cp<:AbstractChannel,
+                                                                                              Cq<:AbstractChannel{Tq}}
     poolitem = acquire!(pq)
     produceitem = f(poolitem, fargs...)
     produceitem === nothing ? recycle!(pq, poolitem) : produce!(pq, produceitem)
@@ -208,25 +208,25 @@ function consume!(pq::PoolQueue{Cp,Cq})::Tq where {Tq, Cp<:AbstractChannel,
 end
 
 """
-    consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Tq where {Tq, Cp<:AbstractChannel,
-                                                                         Cq<:AbstractChannel{Tq}}
+    consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Tp where {Tp, Cp<:AbstractChannel{Tq},
+                                                                         Cq<:AbstractChannel}
 
 Consume an item from `pq.queue`, call `f(item, fargs...)`, and `recycle!` the
-value returned by `f`, which must be of type `Tq`.
+value returned by `f`, which must be of type `Tp`, back into the pool.
 """
-function consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Tq where {Tq, Cp<:AbstractChannel,
-                                                                              Cq<:AbstractChannel{Tq}}
+function consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Tp where {Tp, Cp<:AbstractChannel{Tp},
+                                                                              Cq<:AbstractChannel}
     consume!(pq) |> item->f(item, fargs...) |> item->recycle!(pq, item)
 end
 
 """
-    recycle!(pq::PoolQueue{Cp,Cq}, item::Tq)::Tq where {Tq, Cp<:AbstractChannel,
-                                                            Cq<:AbstractChannel{T}}
+    recycle!(pq::PoolQueue{Cp,Cq}, item::Tp)::Tp where {Tp, Cp<:AbstractChannel{Tp},
+                                                            Cq<:AbstractChannel}
 
 Recycle `item` back to `pq.pool`.
 """
-function recycle!(pq::PoolQueue{Cp,Cq}, item::Tq)::Tq where {Tq, Cp<:AbstractChannel,
-                                                                 Cq<:AbstractChannel{Tq}}
+function recycle!(pq::PoolQueue{Cp,Cq}, item::Tp)::Tp where {Tp, Cp<:AbstractChannel{Tp},
+                                                                 Cq<:AbstractChannel}
     put!(pq.pool, item)
 end
 
