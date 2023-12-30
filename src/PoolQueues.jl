@@ -211,12 +211,17 @@ end
     consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Tp where {Tp, Cp<:AbstractChannel{Tq},
                                                                          Cq<:AbstractChannel}
 
-Consume an item from `pq.queue`, call `f(item, fargs...)`, and `recycle!` the
-value returned by `f`, which must be of type `Tp`, back into the pool.
+Consume an item from `pq.queue` and call `f(item, fargs...)`, which must be of
+type `Tp` or `nothing`.  If the returned value is not `nothing` it will be
+passed to `recycle!` to put it back in the pool.
 """
-function consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Tp where {Tp, Cp<:AbstractChannel{Tp},
-                                                                              Cq<:AbstractChannel}
-    consume!(pq) |> item->f(item, fargs...) |> item->recycle!(pq, item)
+function consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Nothing, Tp} where {Tp, Cp<:AbstractChannel{Tp},
+                                                                                          Cq<:AbstractChannel}
+    queueitem = consume!(pq)
+    poolitem = f(queueitem, fargs...)
+    # If poolitem is not `nothing`, recycle! it
+    poolitem !== nothing && recycle!(pq, poolitem)
+    poolitem
 end
 
 """
