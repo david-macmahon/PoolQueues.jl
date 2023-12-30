@@ -188,12 +188,12 @@ fargs...)`, and `produce!` the value returned by `f` unless it is `nothing`.  If
 returned by `f`, which is of type `Tq` or `nothing`, is returned from this
 function.
 """
-function produce!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Tq, Nothing} where {Tq, Cp<:AbstractChannel,
+function produce!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Nothing, Tq} where {Tq, Cp<:AbstractChannel,
                                                                                               Cq<:AbstractChannel{Tq}}
     poolitem = acquire!(pq)
-    produceitem = f(poolitem, fargs...)
-    produceitem === nothing ? recycle!(pq, poolitem) : produce!(pq, produceitem)
-    produceitem
+    queueitem = f(poolitem, fargs...)
+    queueitem === nothing ? recycle!(pq, poolitem) : produce!(pq, queueitem)
+    queueitem
 end
 
 """
