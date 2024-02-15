@@ -4,11 +4,16 @@ Tasks.  See `PoolQueue` for more information.
 """
 module PoolQueues
 
+using Distributed: RemoteChannel
+
 export PoolQueue
 export acquire!
 export produce!
 export consume!
 export recycle!
+
+PQChannel = Union{AbstractChannel{T},
+                  RemoteChannel{<:AbstractChannel{T}}} where {T}
 
 """
 A PoolQueue facilitates sharing a pool of items between a producer Task and a
@@ -69,18 +74,19 @@ consumer task:       process1 process2 ... [time -->]
 struct PoolQueue{Cp,Cq}
     pool::Cp
     queue::Cq
-    PoolQueue{Cp,Cq}(p::Cp, q::Cq) where {Tp, Cp<:AbstractChannel{Tp},
-                                          Tq, Cq<:AbstractChannel{Tq}} = new(p, q)
+
+    PoolQueue{Cp,Cq}(p::Cp, q::Cq) where {Tp, Cp<:PQChannel{Tp},
+                                          Tq, Cq<:PQChannel{Tq}} = new(p, q)
 end
 
 """
-    PoolQueue(p::Cp, q::Cq) where {Cp<:AbstractChannel,
-                                   Cq<:AbstractChannel}
+    PoolQueue(p::Cp, q::Cq) where {Cp<:PQChannel,
+                                   Cq<:PQChannel}
 
-Construct a PoolQueue from two `AbstractChannel{T}` instances.
+Construct a PoolQueue from two `PQChannel` instances.
 """
-function PoolQueue(p::Cp, q::Cq) where {Cp<:AbstractChannel,
-                                        Cq<:AbstractChannel}
+function PoolQueue(p::Cp, q::Cq) where {Cp<:PQChannel,
+                                        Cq<:PQChannel}
     PoolQueue{Cp,Cq}(p, q)
 end
 
@@ -157,30 +163,31 @@ function Base.close(pq::PoolQueue)
 end
 
 """
-    acquire!(pq::PoolQueue{Cp,Cq})::Tp where {Tp, Cp<:AbstractChannel{Tp},
-                                                  Cq<:AbstractChannel}
+    acquire!(pq::PoolQueue{Cp,Cq})::Tp where {Tp, Cp<:PQChannel{Tp},
+                                                  Cq<:PQChannel}
 
 Acquire an available item from `pq.pool`.
 """
-function acquire!(pq::PoolQueue{Cp,Cq})::Tp where {Tp, Cp<:AbstractChannel{Tp},
-                                                       Cq<:AbstractChannel}
+function acquire!(pq::PoolQueue{Cp,Cq})::Tp where {Tp, Cp<:PQChannel{Tp},
+                                                       Cq<:PQChannel}
     take!(pq.pool)
 end
 
 """
-    produce!(pq::PoolQueue{Cp,Cq}, item::Tq)::Tq where {Tq, Cp<:AbstractChannel,
-                                                            Cq<:AbstractChannel{Tq}}
+    produce!(pq::PoolQueue{Cp,Cq}, item::Tq)::Tq where {Tq, Cp<:PQChannel,
+                                                            Cq<:PQChannel{Tq}}
 
 Produce `item` to `pq.queue`.
 """
-function produce!(pq::PoolQueue{Cp,Cq}, item::Tq)::Tq where {Tq, Cp<:AbstractChannel,
-                                                                 Cq<:AbstractChannel{Tq}}
+function produce!(pq::PoolQueue{Cp,Cq}, item::Tq)::Tq where {Tq, Cp<:PQChannel,
+                                                                 Cq<:PQChannel{Tq}}
     put!(pq.queue, item)
+    return item
 end
 
 """
-    produce!(f::Function, pq::PoolQueue{Cp,Cp}, fargs...)::Union{Tq,Nothing} where {Tq, Cp<:AbstractChannel,
-                                                                                        Cq<:AbstractChannel{Tq}}
+    produce!(f::Function, pq::PoolQueue{Cp,Cp}, fargs...)::Union{Tq,Nothing} where {Tq, Cp<:PQChannel,
+                                                                                        Cq<:PQChannel{Tq}}
 
 Produce an item by acquiring an available item from `pq.pool`, call `f(item,
 fargs...)`, and `produce!` the value returned by `f` unless it is `nothing`.  If
@@ -188,8 +195,8 @@ fargs...)`, and `produce!` the value returned by `f` unless it is `nothing`.  If
 returned by `f`, which is of type `Tq` or `nothing`, is returned from this
 function.
 """
-function produce!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Nothing, Tq} where {Tq, Cp<:AbstractChannel,
-                                                                                              Cq<:AbstractChannel{Tq}}
+function produce!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Nothing, Tq} where {Tq, Cp<:PQChannel,
+                                                                                              Cq<:PQChannel{Tq}}
     poolitem = acquire!(pq)
     queueitem = f(poolitem, fargs...)
     queueitem === nothing ? recycle!(pq, poolitem) : produce!(pq, queueitem)
@@ -197,26 +204,26 @@ function produce!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Nothing, T
 end
 
 """
-    consume!(pq::PoolQueue{Cp,Cq})::Tq where {Tq, Cp<:AbstractChannel,
-                                                  Cq<:AbstractChannel{Tq}}
+    consume!(pq::PoolQueue{Cp,Cq})::Tq where {Tq, Cp<:PQChannel,
+                                                  Cq<:PQChannel{Tq}}
 
 Consume an item from `pq.queue`.
 """
-function consume!(pq::PoolQueue{Cp,Cq})::Tq where {Tq, Cp<:AbstractChannel,
-                                                       Cq<:AbstractChannel{Tq}}
+function consume!(pq::PoolQueue{Cp,Cq})::Tq where {Tq, Cp<:PQChannel,
+                                                       Cq<:PQChannel{Tq}}
     take!(pq.queue)
 end
 
 """
-    consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Tp where {Tp, Cp<:AbstractChannel{Tq},
-                                                                         Cq<:AbstractChannel}
+    consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Tp where {Tp, Cp<:PQChannel{Tq},
+                                                                         Cq<:PQChannel}
 
 Consume an item from `pq.queue` and call `f(item, fargs...)`, which must be of
 type `Tp` or `nothing`.  If the returned value is not `nothing` it will be
 passed to `recycle!` to put it back in the pool.
 """
-function consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Nothing, Tp} where {Tp, Cp<:AbstractChannel{Tp},
-                                                                                          Cq<:AbstractChannel}
+function consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Nothing, Tp} where {Tp, Cp<:PQChannel{Tp},
+                                                                                              Cq<:PQChannel}
     queueitem = consume!(pq)
     poolitem = f(queueitem, fargs...)
     # If poolitem is not `nothing`, recycle! it
@@ -225,14 +232,15 @@ function consume!(f::Function, pq::PoolQueue{Cp,Cq}, fargs...)::Union{Nothing, T
 end
 
 """
-    recycle!(pq::PoolQueue{Cp,Cq}, item::Tp)::Tp where {Tp, Cp<:AbstractChannel{Tp},
-                                                            Cq<:AbstractChannel}
+    recycle!(pq::PoolQueue{Cp,Cq}, item::Tp)::Tp where {Tp, Cp<:PQChannel{Tp},
+                                                            Cq<:PQChannel}
 
 Recycle `item` back to `pq.pool`.
 """
-function recycle!(pq::PoolQueue{Cp,Cq}, item::Tp)::Tp where {Tp, Cp<:AbstractChannel{Tp},
-                                                                 Cq<:AbstractChannel}
+function recycle!(pq::PoolQueue{Cp,Cq}, item::Tp)::Tp where {Tp, Cp<:PQChannel{Tp},
+                                                                 Cq<:PQChannel}
     put!(pq.pool, item)
+    return item
 end
 
 end # module PoolQueues
