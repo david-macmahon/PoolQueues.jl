@@ -1,7 +1,7 @@
 name = "PoolQueues"
 uuid = "da57cb61-2122-4cb9-bf56-fd6f75f7b468"
 authors = ["David MacMahon <davidm@astro.berkeley.edu> and contributors"]
-version = "0.3.0"
+version = "0.4.0"
 
 [deps]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
