@@ -141,4 +141,40 @@ f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff
         @test nitems(pq) == (0, 1)
         close(pq)
     end
+
+    @testset "exception safety" begin
+        # produce!(f, pq) recycles the acquired poolitem when f throws
+        pq = PoolQueue{Int,Int}(2, 2)
+        recycle!(pq, 1)
+        recycle!(pq, 2)
+        @test nitems(pq) == (2, 0)
+        @test_throws ErrorException produce!(pq) do item
+            error("boom")
+        end
+        @test nitems(pq) == (2, 0)
+
+        # consume!(f, pq) recycles the consumed item when queueitem isa Tp
+        item = acquire!(pq)              # pool: [2]; in-flight: 1
+        produce!(pq, item)               # queue: [1]; pool: [2]
+        @test nitems(pq) == (1, 1)
+        @test_throws ErrorException consume!(pq) do item
+            error("boom")
+        end
+        @test nitems(pq) == (2, 0)       # consumed item recycled
+
+        # consume!(f, pq) drops (with warning) when queueitem !isa Tp
+        pq2 = PoolQueue{Int,String}(2, 2)
+        recycle!(pq2, 1)
+        recycle!(pq2, 2)
+        i = acquire!(pq2)                # pool: [2]; in-flight: 1
+        produce!(pq2, "hello")           # queue: ["hello"]; pool: [2]
+        @test nitems(pq2) == (1, 1)
+        @test_logs (:warn,) match_mode=:any @test_throws ErrorException consume!(pq2) do item
+            error("boom")
+        end
+        @test nitems(pq2) == (1, 0)      # item dropped, not recycled
+
+        close(pq)
+        close(pq2)
+    end
 end

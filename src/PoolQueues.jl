@@ -199,11 +199,17 @@ Produce an item by acquiring an available item from `pq.pool`, call `f(item,
 fargs...)`, and `produce!` the value returned by `f` unless it is `nothing`.  If
 `f` returns `nothing`, the item is recycled without being produced.  The value
 returned by `f`, which is of type `Tq` or `nothing`, is returned from this
-function.
+function.  If `f` throws an exception, the acquired item is recycled back to
+`pq.pool` and the exception is rethrown.
 """
 function produce!(f::Function, pq::PoolQueue{Tp,Tq}, fargs...)::Union{Nothing,Tq} where {Tp,Tq}
     poolitem = acquire!(pq)
-    queueitem = f(poolitem, fargs...)
+    queueitem = try
+        f(poolitem, fargs...)
+    catch e
+        recycle!(pq, poolitem)
+        rethrow(e)
+    end
     queueitem === nothing ? recycle!(pq, poolitem) : produce!(pq, queueitem)
     queueitem
 end
@@ -222,11 +228,23 @@ end
 
 Consume an item from `pq.queue` and call `f(item, fargs...)`, which must be of
 type `Tp` or `nothing`.  If the returned value is not `nothing` it will be
-passed to `recycle!` to put it back in the pool.
+passed to `recycle!` to put it back in the pool.  If `f` throws an exception,
+the consumed item is recycled back to `pq.pool` when `queueitem isa Tp` and the
+exception is rethrown; otherwise the item cannot be recycled and is dropped
+(with a warning) before rethrowing.
 """
 function consume!(f::Function, pq::PoolQueue{Tp,Tq}, fargs...)::Union{Nothing,Tp} where {Tp,Tq}
     queueitem = consume!(pq)
-    poolitem = f(queueitem, fargs...)
+    poolitem = try
+        f(queueitem, fargs...)
+    catch e
+        if queueitem isa Tp
+            recycle!(pq, queueitem)
+        else
+            @warn "consume!: f threw an exception and the consumed item cannot be recycled (Tq is not a subtype of Tp); dropping item" Tp=Tp Tq=Tq
+        end
+        rethrow(e)
+    end
     # If poolitem is not `nothing`, recycle! it
     poolitem !== nothing && recycle!(pq, poolitem)
     poolitem
