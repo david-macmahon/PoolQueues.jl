@@ -63,7 +63,7 @@ the data file.  The producer Task's reading of the next portion of data happens
 in parallel with the consumer Task's processing the previous data.  Instead of:
 
 ```text
-main task: read0 process0 read1 process1 read2 process2 ... [time -->]
+main task: read1 process1 read2 process2 read3 process3 ... [time -->]
 ```
 
 using a PoolQueue with two (or more) items allows:
