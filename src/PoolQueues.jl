@@ -34,7 +34,7 @@ while true
     # Acquire an available item from the PoolQueue's pool
     item = acquire!(poolqueue)
 
-    # Preprare item for consumer task (application specific)
+    # Prepare item for consumer task (application specific)
 
     # Produce the item to the PoolQueue's queue
     produce!(poolqueue, item)
@@ -51,7 +51,7 @@ while true
     # Process the item (application specific)
 
     # Recycle the item back to the PoolQueue's pool
-    produce!(poolqueue, item)
+    recycle!(poolqueue, item)
 end
 ```
 
@@ -97,7 +97,7 @@ end
 
 Construct a PoolQueue using a `Channel{Tp}` channel for the pool and a
 `Channel{Tq}` channel for the queue.  The pool channel will hold up to `np`
-items of type `Tp` and the queue channel will hold up to `np` items of
+items of type `Tp` and the queue channel will hold up to `nq` items of
 type `Tq`.
 """
 function PoolQueue{Tp,Tq}(np::Integer, nq::Integer=np) where {Tp,Tq}
@@ -117,6 +117,10 @@ items of type `Tp` and the queue channel will hold up to `nq` items of type
 called `np` times as `f(fargs...; fkwargs...)` to pre-populate the PoolQueue's
 pool.  If `fargs` is used, `nq` must be passed explicitly.  The
 non-parameterized constructor uses the return type of `f` as `Tp` and `Tq`.
+
+For the non-parameterized constructor, `f` must return the same concrete type
+on every call.  If `f` may return values of varying types, use the explicit
+`PoolQueue{Tp,Tq}(f, ...)` form instead.
 """
 function PoolQueue{Tp,Tq}(f::Function, np::Integer, nq::Integer=np, fargs...; fkwargs...) where {Tp,Tq}
     pq = PoolQueue{Tp,Tq}(np, nq)
