@@ -1,0 +1,147 @@
+<mxfile host="app.diagrams.net" agent="opencode" version="24.7.17">
+  <diagram name="Three PoolQueue Pipeline" id="three-poolqueue-pipeline">
+    <mxGraphModel dx="1300" dy="400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1140" pageHeight="350" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="Three PoolQueue Pipeline" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;align=center;verticalAlign=middle;fontSize=24;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="370" y="10" width="400" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Producer Task (far left) ===== -->
+        <mxCell id="producer" value="Producer&#xa;Task" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8DAF0;strokeColor=#9558B2;strokeWidth=2;verticalAlign=middle;align=center;fontStyle=1;fontSize=13" vertex="1" parent="1">
+          <mxGeometry x="20" y="75" width="110" height="108" as="geometry" />
+        </mxCell>
+
+        <!-- ===== PoolQueue 1 ===== -->
+        <mxCell id="pq1" value="PoolQueue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;fontStyle=1;fontSize=14;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="160" y="75" width="140" height="108" as="geometry" />
+        </mxCell>
+        <mxCell id="pool1" value="Pool" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D6DEF2;strokeColor=#4063D8;verticalAlign=middle;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="175" y="110" width="110" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="queue1" value="Queue" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D5EBD0;strokeColor=#389826;verticalAlign=middle;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="175" y="142" width="110" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Pipeline Task 1 ===== -->
+        <mxCell id="pipe1" value="Pipeline Task" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;fontStyle=1;fontSize=14;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="330" y="75" width="140" height="108" as="geometry" />
+        </mxCell>
+        <mxCell id="pipe1_red" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F2D7D5;strokeColor=#CB3C33;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="345" y="110" width="55" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="pipe1_purple" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8DAF0;strokeColor=#9558B2;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="400" y="110" width="55" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="pipe1_cloud" value="" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#808080;strokeColor=#808080;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="378" y="128" width="44" height="22" as="geometry" />
+        </mxCell>
+
+        <!-- ===== PoolQueue 2 ===== -->
+        <mxCell id="pq2" value="PoolQueue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;fontStyle=1;fontSize=14;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="500" y="75" width="140" height="108" as="geometry" />
+        </mxCell>
+        <mxCell id="pool2" value="Pool" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D6DEF2;strokeColor=#4063D8;verticalAlign=middle;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="515" y="110" width="110" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="queue2" value="Queue" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D5EBD0;strokeColor=#389826;verticalAlign=middle;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="515" y="142" width="110" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Pipeline Task 2 ===== -->
+        <mxCell id="pipe2" value="Pipeline Task" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;fontStyle=1;fontSize=14;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="670" y="75" width="140" height="108" as="geometry" />
+        </mxCell>
+        <mxCell id="pipe2_red" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F2D7D5;strokeColor=#CB3C33;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="685" y="110" width="55" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="pipe2_purple" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#E8DAF0;strokeColor=#9558B2;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="740" y="110" width="55" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="pipe2_cloud" value="" style="shape=cloud;whiteSpace=wrap;html=1;fillColor=#808080;strokeColor=#808080;strokeWidth=2" vertex="1" parent="1">
+          <mxGeometry x="718" y="128" width="44" height="22" as="geometry" />
+        </mxCell>
+
+        <!-- ===== PoolQueue 3 ===== -->
+        <mxCell id="pq3" value="PoolQueue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;verticalAlign=top;fontStyle=1;fontSize=14;spacingTop=4" vertex="1" parent="1">
+          <mxGeometry x="840" y="75" width="140" height="108" as="geometry" />
+        </mxCell>
+        <mxCell id="pool3" value="Pool" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D6DEF2;strokeColor=#4063D8;verticalAlign=middle;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="855" y="110" width="110" height="26" as="geometry" />
+        </mxCell>
+        <mxCell id="queue3" value="Queue" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D5EBD0;strokeColor=#389826;verticalAlign=middle;fontSize=13;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="855" y="142" width="110" height="26" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Consumer Task (far right) ===== -->
+        <mxCell id="consumer" value="Consumer&#xa;Task" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F2D7D5;strokeColor=#CB3C33;strokeWidth=2;verticalAlign=middle;align=center;fontStyle=1;fontSize=13" vertex="1" parent="1">
+          <mxGeometry x="1010" y="75" width="110" height="108" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Arrows: Producer <-> PQ1 ===== -->
+        <!-- acquire!: PQ1 Pool -> Producer (high) -->
+        <mxCell id="a_acq_p1" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#9558B2;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.44;entryDx=0;entryDy=0" edge="1" parent="1" source="pool1" target="producer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- produce!: Producer -> PQ1 Queue (low) -->
+        <mxCell id="a_prod_p1" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#9558B2;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=1;exitY=0.74;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0" edge="1" parent="1" source="producer" target="queue1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Arrows: Pipeline1 <-> PQ1 (consumer/red side) ===== -->
+        <!-- consume!: PQ1 Queue -> Pipeline1 red (low) -->
+        <mxCell id="a_cons_p1" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#CB3C33;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.78;entryDx=0;entryDy=0" edge="1" parent="1" source="queue1" target="pipe1_red">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- recycle!: Pipeline1 red -> PQ1 Pool (high) -->
+        <mxCell id="a_recy_p1" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#CB3C33;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=0;exitY=0.22;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0" edge="1" parent="1" source="pipe1_red" target="pool1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Arrows: Pipeline1 <-> PQ2 (producer/purple side) ===== -->
+        <!-- acquire!: PQ2 Pool -> Pipeline1 purple (high) -->
+        <mxCell id="a_acq_p2" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#9558B2;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.22;entryDx=0;entryDy=0" edge="1" parent="1" source="pool2" target="pipe1_purple">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- produce!: Pipeline1 purple -> PQ2 Queue (low) -->
+        <mxCell id="a_prod_p2" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#9558B2;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=1;exitY=0.78;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0" edge="1" parent="1" source="pipe1_purple" target="queue2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Arrows: Pipeline2 <-> PQ2 (consumer/red side) ===== -->
+        <!-- consume!: PQ2 Queue -> Pipeline2 red (low) -->
+        <mxCell id="a_cons_p2" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#CB3C33;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.78;entryDx=0;entryDy=0" edge="1" parent="1" source="queue2" target="pipe2_red">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- recycle!: Pipeline2 red -> PQ2 Pool (high) -->
+        <mxCell id="a_recy_p2" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#CB3C33;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=0;exitY=0.22;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0" edge="1" parent="1" source="pipe2_red" target="pool2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Arrows: Pipeline2 <-> PQ3 (producer/purple side) ===== -->
+        <!-- acquire!: PQ3 Pool -> Pipeline2 purple (high) -->
+        <mxCell id="a_acq_p3" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#9558B2;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.22;entryDx=0;entryDy=0" edge="1" parent="1" source="pool3" target="pipe2_purple">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- produce!: Pipeline2 purple -> PQ3 Queue (low) -->
+        <mxCell id="a_prod_p3" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#9558B2;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=1;exitY=0.78;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0" edge="1" parent="1" source="pipe2_purple" target="queue3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== Arrows: Consumer <-> PQ3 ===== -->
+        <!-- consume!: PQ3 Queue -> Consumer (low) -->
+        <mxCell id="a_cons_p3" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#CB3C33;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.74;entryDx=0;entryDy=0" edge="1" parent="1" source="queue3" target="consumer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- recycle!: Consumer -> PQ3 Pool (high) -->
+        <mxCell id="a_recy_p3" style="endArrow=classic;html=1;rounded=0;fontSize=11;fontStyle=1;strokeColor=#CB3C33;strokeWidth=2;labelBackgroundColor=#ffffff;exitX=0;exitY=0.44;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0" edge="1" parent="1" source="consumer" target="pool3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
