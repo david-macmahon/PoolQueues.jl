@@ -162,7 +162,11 @@ function PoolQueue(::Type{Tp}, np::Integer, nq::Integer=np, Tpargs...; Tpkwargs.
 end
 
 """
-Close the `pool` and `queue` channels associated with `pq`.
+    Base.close(pq::PoolQueue)
+
+Close the `queue` and `pool` channels associated with `pq`, in that order.
+The PoolQueue is unusable after `close`; further `acquire!`/`produce!`/
+`consume!`/`recycle!` operations will throw.
 """
 function Base.close(pq::PoolQueue)
     close(pq.queue)
