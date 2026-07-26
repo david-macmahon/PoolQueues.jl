@@ -1,5 +1,6 @@
 using PoolQueues
 using Test
+using Distributed: RemoteChannel
 
 struct MyItem
     eof::Bool
@@ -91,5 +92,53 @@ f0 f1 f2 f3 f4 f5 f6 f7 f8 f9 fa fb fc fd fe ff
         r1 = acquire!(pq)
         r2 = acquire!(pq)
         @test !isready(pq.pool)
+    end
+
+    @testset "nitems and maxsize" begin
+        # Channel
+        ch = Channel{Int}(3)
+        @test maxsize(ch) == 3
+        @test nitems(ch) == 0
+        put!(ch, 1)
+        @test nitems(ch) == 1
+        put!(ch, 2)
+        @test nitems(ch) == 2
+        take!(ch)
+        @test nitems(ch) == 1
+        close(ch)
+
+        # Channel with zero items but nonzero capacity
+        ch_empty = Channel{Int}(5)
+        @test maxsize(ch_empty) == 5
+        @test nitems(ch_empty) == 0
+        close(ch_empty)
+
+        # RemoteChannel
+        rch = RemoteChannel(() -> Channel{Int}(4))
+        @test maxsize(rch) == 4
+        @test nitems(rch) == 0
+        put!(rch, 10)
+        @test nitems(rch) == 1
+        take!(rch)
+        @test nitems(rch) == 0
+
+        # PoolQueue
+        pq = PoolQueue{Int,Int}(2, 3)
+        @test maxsize(pq) == (2, 3)
+        @test nitems(pq) == (0, 0)
+        recycle!(pq, 1)
+        recycle!(pq, 2)
+        @test nitems(pq) == (2, 0)
+        item = acquire!(pq)
+        @test nitems(pq) == (1, 0)
+        produce!(pq, item * 100)
+        @test nitems(pq) == (1, 1)
+        item = acquire!(pq)
+        @test nitems(pq) == (0, 1)
+        produce!(pq, item * 100)
+        @test nitems(pq) == (0, 2)
+        consume!(pq)
+        @test nitems(pq) == (0, 1)
+        close(pq)
     end
 end

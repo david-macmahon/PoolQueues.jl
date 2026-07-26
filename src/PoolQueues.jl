@@ -4,13 +4,15 @@ Tasks.  See `PoolQueue` for more information.
 """
 module PoolQueues
 
-using Distributed: RemoteChannel
+using Distributed: RemoteChannel, call_on_owner, channel_from_id
 
 export PoolQueue
 export acquire!
 export produce!
 export consume!
 export recycle!
+export nitems
+export maxsize
 
 PQChannel = Union{AbstractChannel{T},
                   RemoteChannel{<:AbstractChannel{T}}} where {T}
@@ -242,5 +244,7 @@ function recycle!(pq::PoolQueue{Cp,Cq}, item::Tp)::Tp where {Tp, Cp<:PQChannel{T
     put!(pq.pool, item)
     return item
 end
+
+include("utils.jl")
 
 end # module PoolQueues
