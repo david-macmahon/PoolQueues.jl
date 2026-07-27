@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Guide · PoolQueues.jl</title><meta name="title" content="Guide · PoolQueues.jl"/><meta property="og:title" content="Guide · PoolQueues.jl"/><meta property="twitter:title" content="Guide · PoolQueues.jl"/><meta name="description" content="Documentation for PoolQueues.jl."/><meta property="og:description" content="Documentation for PoolQueues.jl."/><meta property="twitter:description" content="Documentation for PoolQueues.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">PoolQueues.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Guide</a><ul class="internal"><li><a class="tocitem" href="#Constructors"><span>Constructors</span></a></li><li><a class="tocitem" href="#Producer-and-consumer-tasks"><span>Producer and consumer tasks</span></a></li><li><a class="tocitem" href="#Exception-safety"><span>Exception safety</span></a></li><li><a class="tocitem" href="#Closing"><span>Closing</span></a></li><li><a class="tocitem" href="#Introspection"><span>Introspection</span></a></li></ul></li><li><a class="tocitem" href="../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Guide</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Guide</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/david-macmahon/PoolQueues.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/david-macmahon/PoolQueues.jl/blob/main/docs/src/guide.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Guide"><a class="docs-heading-anchor" href="#Guide">Guide</a><a id="Guide-1"></a><a class="docs-heading-anchor-permalink" href="#Guide" title="Permalink"></a></h1><p>This guide walks through constructing, using, and closing a <code>PoolQueue</code>, and covers exception-safety considerations.</p><h2 id="Constructors"><a class="docs-heading-anchor" href="#Constructors">Constructors</a><a id="Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Constructors" title="Permalink"></a></h2><p>There are several constructor forms.  All of them pre-populate the pool unless you construct from raw channels.</p><h3 id="From-a-type-constructor"><a class="docs-heading-anchor" href="#From-a-type-constructor">From a type constructor</a><a id="From-a-type-constructor-1"></a><a class="docs-heading-anchor-permalink" href="#From-a-type-constructor" title="Permalink"></a></h3><pre><code class="language-julia-repl hljs">julia&gt; using PoolQueues
+
+julia&gt; pq = PoolQueue(Int, 3, 3, 0);    # 3 Ints (initialized to 0), 3-slot queue
+
+julia&gt; nitems(pq)
+(3, 0)</code></pre><p>Pass <code>Tq</code> explicitly to give the queue a different element type than the pool:</p><pre><code class="language-julia-repl hljs">julia&gt; using PoolQueues
+
+julia&gt; pq = PoolQueue(Int, String, 3, 2, 0);   # pool: 3 Ints, queue: 2 Strings
+
+julia&gt; maxsize(pq)
+(3, 2)</code></pre><h3 id="From-a-factory-function"><a class="docs-heading-anchor" href="#From-a-factory-function">From a factory function</a><a id="From-a-factory-function-1"></a><a class="docs-heading-anchor-permalink" href="#From-a-factory-function" title="Permalink"></a></h3><pre><code class="language-julia-repl hljs">julia&gt; using PoolQueues
+
+julia&gt; pq = PoolQueue(() -&gt; zeros(Float64, 4), 2);  # 2 vectors of Float64
+
+julia&gt; acquire!(pq)
+4-element Vector{Float64}:
+ 0.0
+ 0.0
+ 0.0
+ 0.0</code></pre><p>Use the parameterized form when the factory may return varying concrete types:</p><pre><code class="language-julia-repl hljs">julia&gt; using PoolQueues
+
+julia&gt; pq = PoolQueue{Number, Number}(2, 2);
+
+julia&gt; recycle!(pq, 1); recycle!(pq, 2.0);
+
+julia&gt; nitems(pq)
+(2, 0)</code></pre><h3 id="From-raw-channels"><a class="docs-heading-anchor" href="#From-raw-channels">From raw channels</a><a id="From-raw-channels-1"></a><a class="docs-heading-anchor-permalink" href="#From-raw-channels" title="Permalink"></a></h3><p>For full control (including <code>RemoteChannel</code>s for distributed use), construct from two channels directly:</p><pre><code class="language-julia-repl hljs">julia&gt; using PoolQueues
+
+julia&gt; pq = PoolQueue(Channel{Int}(2), Channel{Int}(2));
+
+julia&gt; maxsize(pq)
+(2, 2)</code></pre><h2 id="Producer-and-consumer-tasks"><a class="docs-heading-anchor" href="#Producer-and-consumer-tasks">Producer and consumer tasks</a><a id="Producer-and-consumer-tasks-1"></a><a class="docs-heading-anchor-permalink" href="#Producer-and-consumer-tasks" title="Permalink"></a></h2><p>The function forms of <code>produce!</code> and <code>consume!</code> are preferred because they guarantee that items are acquired and recycled correctly, including on exceptions.</p><pre><code class="language-julia hljs">producer = @async for i in 1:5
+    produce!(pq) do item
+        item[] = i     # mutate in place
+        return item
+    end
+end
+
+consumer = @async for _ in 1:5
+    consume!(pq) do item
+        println(&quot;got &quot;, item[])
+        return item
+    end
+end
+wait(consumer)</code></pre><p>Returning <code>nothing</code> from the producer&#39;s function recycles the item without producing it - handy for filtering or signalling end-of-input.</p><h2 id="Exception-safety"><a class="docs-heading-anchor" href="#Exception-safety">Exception safety</a><a id="Exception-safety-1"></a><a class="docs-heading-anchor-permalink" href="#Exception-safety" title="Permalink"></a></h2><p>Both function forms are exception-safe:</p><ul><li>If the function passed to <code>produce!(f, pq)</code> throws, the acquired item is recycled back to the pool and the exception is rethrown.</li><li>If the function passed to <code>consume!(f, pq)</code> throws, the consumed item is recycled back to the pool when <code>queueitem isa Tp</code>; otherwise it cannot be recycled and is dropped (with a warning) before the exception is rethrown.</li></ul><p>This means a producer or consumer that throws will not silently leak items out of the pool, provided the consumed value is pool-compatible.</p><h2 id="Closing"><a class="docs-heading-anchor" href="#Closing">Closing</a><a id="Closing-1"></a><a class="docs-heading-anchor-permalink" href="#Closing" title="Permalink"></a></h2><p><code>close(pq)</code> closes the queue and pool channels in that order.  The <code>PoolQueue</code> is unusable after <code>close</code>; further <code>acquire!</code>/<code>produce!</code>/<code>consume!</code>/<code>recycle!</code> operations will throw.</p><pre><code class="language-julia-repl hljs">julia&gt; using PoolQueues
+
+julia&gt; pq = PoolQueue(Int, 2, 2, 0);
+
+julia&gt; # Drain the pool so acquire! must block, then close to wake it.
+
+julia&gt; acquire!(pq); acquire!(pq);
+
+julia&gt; close(pq);
+
+julia&gt; try acquire!(pq) catch e typeof(e) end
+InvalidStateException</code></pre><h2 id="Introspection"><a class="docs-heading-anchor" href="#Introspection">Introspection</a><a id="Introspection-1"></a><a class="docs-heading-anchor-permalink" href="#Introspection" title="Permalink"></a></h2><p>Use <code>nitems</code> and <code>maxsize</code> to inspect a <code>PoolQueue</code> (or any underlying <code>Channel</code>/<code>RemoteChannel</code>):</p><pre><code class="language-julia-repl hljs">julia&gt; using PoolQueues
+
+julia&gt; pq = PoolQueue{Int,Int}(2, 3);   # empty pool/queue, no pre-population
+
+julia&gt; maxsize(pq)
+(2, 3)
+
+julia&gt; recycle!(pq, 1); recycle!(pq, 2);
+
+julia&gt; nitems(pq)
+(2, 0)
+
+julia&gt; item = acquire!(pq);
+
+julia&gt; produce!(pq, item * 10);
+
+julia&gt; nitems(pq)
+(1, 1)</code></pre><hr/><p><em>This documentation was initially generated by <a href="https://opencode.ai">opencode</a> (powered by the openai/GLM-5.2 model) and subsequently reviewed and edited by the package author.</em></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../api/">API Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Monday 27 July 2026 20:13">Monday 27 July 2026</span>. Using Julia version 1.10.11.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
