@@ -1,5 +1,8 @@
 # PoolQueues
 
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://david-macmahon.github.io/PoolQueues.jl/stable/)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://david-macmahon.github.io/PoolQueues.jl/dev/)
+
 PoolQueues facilitate sharing pools of items between producer Tasks and consumer
 Tasks.
 
